@@ -1,0 +1,8 @@
+{
+  "unstable": [
+    "bare-node-builtins",
+    "node-globals",
+    "unsafe-proto"
+  ],
+  "nodeModulesDir": "auto"
+}

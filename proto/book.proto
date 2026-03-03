@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package book;
+
+service BookService {
+    rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
+    rpc GetBooks (GetBooksRequest) returns (GetBooksResponse);
+    rpc DeleteBook (DeleteBookRequest) returns (DeleteBookResponse);
+}
+
+message UploadFileRequest {
+    string file_name = 1;
+    bytes file_content = 2;
+}
+
+message UploadFileResponse {
+    string message = 1;
+    bool success = 2;
+}
+
+message GetBooksRequest {
+}
+
+message GetBooksResponse {
+    repeated string books = 1;
+}
+
+message DeleteBookRequest {
+    string book_id = 1;
+}
+
+message DeleteBookResponse {
+    bool success = 1;
+    string message = 2;
+}
