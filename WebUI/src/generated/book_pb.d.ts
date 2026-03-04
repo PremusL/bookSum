@@ -62,11 +62,33 @@ export namespace GetBooksRequest {
   }
 }
 
+export class Book extends jspb.Message {
+  getId(): number;
+  setId(value: number): Book;
+
+  getName(): string;
+  setName(value: string): Book;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Book.AsObject;
+  static toObject(includeInstance: boolean, msg: Book): Book.AsObject;
+  static serializeBinaryToWriter(message: Book, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Book;
+  static deserializeBinaryFromReader(message: Book, reader: jspb.BinaryReader): Book;
+}
+
+export namespace Book {
+  export type AsObject = {
+    id: number,
+    name: string,
+  }
+}
+
 export class GetBooksResponse extends jspb.Message {
-  getBooksList(): Array<string>;
-  setBooksList(value: Array<string>): GetBooksResponse;
+  getBooksList(): Array<Book>;
+  setBooksList(value: Array<Book>): GetBooksResponse;
   clearBooksList(): GetBooksResponse;
-  addBooks(value: string, index?: number): GetBooksResponse;
+  addBooks(value?: Book, index?: number): Book;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetBooksResponse.AsObject;
@@ -78,13 +100,13 @@ export class GetBooksResponse extends jspb.Message {
 
 export namespace GetBooksResponse {
   export type AsObject = {
-    booksList: Array<string>,
+    booksList: Array<Book.AsObject>,
   }
 }
 
 export class DeleteBookRequest extends jspb.Message {
-  getBookId(): string;
-  setBookId(value: string): DeleteBookRequest;
+  getBookId(): number;
+  setBookId(value: number): DeleteBookRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeleteBookRequest.AsObject;
@@ -96,7 +118,7 @@ export class DeleteBookRequest extends jspb.Message {
 
 export namespace DeleteBookRequest {
   export type AsObject = {
-    bookId: string,
+    bookId: number,
   }
 }
 

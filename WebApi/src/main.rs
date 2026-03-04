@@ -21,8 +21,10 @@ pub struct BookServiceImpl {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Book {
-    file_name: String,
-    file_content: Vec<u8>,
+    #[serde(default)] // Defaults to None if missing during deserialization
+    pub id: Option<u32>,
+    pub file_name: String,
+    pub file_content: Vec<u8>,
 }
 
 #[tonic::async_trait]
@@ -43,6 +45,7 @@ impl BookService for BookServiceImpl {
 
         db.collection("books")
             .insert_one(Book {
+                id: None,
                 file_name: req.file_name,
                 file_content: req.file_content,
             })
@@ -72,7 +75,10 @@ impl BookService for BookServiceImpl {
 
         while let Some(book) = cursor.next().await {
             match book {
-                Ok(b) => books.push(b.file_name),
+                Ok(b) => books.push(book::Book {
+                    id: b.id.unwrap_or(0) as i32,
+                    name: b.file_name,
+                }),
                 Err(e) => return Err(Status::internal(e.to_string())),
             }
         }

@@ -21,12 +21,17 @@ message UploadFileResponse {
 message GetBooksRequest {
 }
 
+message Book {
+    int32 id = 1;
+    string name = 2;
+}
+
 message GetBooksResponse {
-    repeated string books = 1;
+    repeated Book books = 1;
 }
 
 message DeleteBookRequest {
-    string book_id = 1;
+    int32 book_id = 1;
 }
 
 message DeleteBookResponse {

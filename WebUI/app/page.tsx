@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { grpcClient } from "../src/grpc-client";
 
-interface Book {
-  id: string;
+export interface Book {
+  id: number;
   name: string;
   file?: File;
 }
@@ -24,8 +24,8 @@ export default function Home() {
         // Since we don't have the files, we map them to the Book interface
         // giving them a null file or omitting it.
         const fetchedBooks: Book[] = response.books.map((name) => ({
-          id: Math.random().toString(36).substr(2, 9),
-          name: name,
+          id: name.id,
+          name: name.name,
           file: null as any // Our interface says File, but we won't have it for already uploaded files, unless we change the interface. We'll cast as any for now or make it optional.
         }));
         setBooks(fetchedBooks);
@@ -86,7 +86,7 @@ export default function Home() {
         
         if (response.success) {
           const newBook: Book = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: selectedFile.size,
             name: selectedFile.name,
             file: selectedFile,
           };
