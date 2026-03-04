@@ -1,3 +1,6 @@
+use futures::stream::StreamExt;
+use mongodb::bson::doc;
+use serde::{Deserialize, Serialize};
 use tonic::{transport::Server, Request, Response, Status};
 use tower_http::cors::{Any, CorsLayer};
 
@@ -11,8 +14,16 @@ use book::{
     UploadFileResponse,
 };
 
-#[derive(Debug, Default)]
-pub struct BookServiceImpl;
+#[derive(Debug, Clone)]
+pub struct BookServiceImpl {
+    pub db: mongodb::Database,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Book {
+    file_name: String,
+    file_content: Vec<u8>,
+}
 
 #[tonic::async_trait]
 impl BookService for BookServiceImpl {
@@ -21,14 +32,25 @@ impl BookService for BookServiceImpl {
         request: Request<UploadFileRequest>,
     ) -> Result<Response<UploadFileResponse>, Status> {
         let req = request.into_inner();
+        let file_name = req.file_name.clone();
         println!(
             "Uploading file: {} ({} bytes)",
             req.file_name,
             req.file_content.len()
         );
 
+        let db = &self.db;
+
+        db.collection("books")
+            .insert_one(Book {
+                file_name: req.file_name,
+                file_content: req.file_content,
+            })
+            .await
+            .expect("Failed to insert book");
+
         let response = UploadFileResponse {
-            message: format!("File {} uploaded successfully", req.file_name),
+            message: format!("File {} uploaded successfully", file_name),
             success: true,
         };
 
@@ -39,11 +61,21 @@ impl BookService for BookServiceImpl {
         &self,
         _request: Request<GetBooksRequest>,
     ) -> Result<Response<GetBooksResponse>, Status> {
-        let books = vec![
-            "Book 1".to_string(),
-            "Book 2".to_string(),
-            "Book 3".to_string(),
-        ];
+        let mut cursor = self
+            .db
+            .collection::<Book>("books")
+            .find(doc! {})
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
+
+        let mut books = Vec::new();
+
+        while let Some(book) = cursor.next().await {
+            match book {
+                Ok(b) => books.push(b.file_name),
+                Err(e) => return Err(Status::internal(e.to_string())),
+            }
+        }
 
         let response = GetBooksResponse { books };
 
@@ -68,8 +100,12 @@ impl BookService for BookServiceImpl {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "127.0.0.1:8001".parse()?;
-    let book_service = BookServiceImpl::default();
+    let addr = "127.0.0.1:8008".parse()?;
+
+    let mongo_client = mongodb::Client::with_uri_str("mongodb://localhost:27017").await?;
+    let db = mongo_client.database("books");
+
+    let book_service = BookServiceImpl { db };
 
     println!("gRPC server starting at {}", addr);
 

@@ -1,2 +1,7 @@
 /.vscode
 /.book-sum
+
+*.idea*
+*.idea
+*.lock
+*.lock*

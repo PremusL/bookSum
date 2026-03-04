@@ -1,13 +1,13 @@
 'use client';
 
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { grpcClient } from "../src/grpc-client";
 
 interface Book {
   id: string;
   name: string;
-  file: File;
+  file?: File;
 }
 
 export default function Home() {
@@ -15,6 +15,27 @@ export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await grpcClient.getBooks();
+        // The backend returns a list of strings (file names).
+        // Since we don't have the files, we map them to the Book interface
+        // giving them a null file or omitting it.
+        const fetchedBooks: Book[] = response.books.map((name) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          name: name,
+          file: null as any // Our interface says File, but we won't have it for already uploaded files, unless we change the interface. We'll cast as any for now or make it optional.
+        }));
+        setBooks(fetchedBooks);
+      } catch (err) {
+        console.error("Failed to fetch books:", err);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

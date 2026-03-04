@@ -1,13 +1,29 @@
 import { BookServiceClient } from './generated/BookServiceClientPb';
-import { UploadFileRequest } from './generated/book_pb';
+import { UploadFileRequest, GetBooksRequest } from './generated/book_pb';
 
-const RUST_GRPC_URL = 'http://localhost:8001'; // Default URL, can be configured via env vars
+const RUST_GRPC_URL = 'http://localhost:8008'; // Default URL, can be configured via env vars
 
 class GrpcClient {
   private client: BookServiceClient;
 
   constructor() {
     this.client = new BookServiceClient(RUST_GRPC_URL);
+  }
+
+  async getBooks(): Promise<{ books: string[] }> {
+    return new Promise((resolve, reject) => {
+      const req = new GetBooksRequest();
+      this.client.getBooks(req, {}, (err, response) => {
+        if (err) {
+          console.error('gRPC Error:', err);
+          reject(err);
+        } else {
+          resolve({
+            books: response.getBooksList()
+          });
+        }
+      });
+    });
   }
 
   async uploadFile(file: File): Promise<{ success: boolean; message: string }> {
